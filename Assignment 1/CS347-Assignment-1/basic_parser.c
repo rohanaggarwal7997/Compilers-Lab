@@ -1,6 +1,6 @@
 /* Basic parser, shows the structure but there's no code generation */
-
 #include <stdio.h>
+#include "basic_parser.h"
 #include "lex.h"
 
 statements()

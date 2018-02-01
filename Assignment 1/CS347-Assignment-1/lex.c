@@ -52,6 +52,12 @@ int lex(void){
             return LP;
            case ')':
             return RP;
+           case '<':
+            return LT;
+           case '>':
+            return GT;
+           case '=':
+            return EQUAL; 
            case '\n':
            case '\t':
            case ' ' :

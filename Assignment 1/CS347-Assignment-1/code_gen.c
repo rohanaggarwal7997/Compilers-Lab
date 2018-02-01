@@ -1,22 +1,21 @@
-#include <stdio.h>
+#include "code_gen.h"
+#include "name.h"
 #include "lex.h"
-
-char    *factor     ( void );
-char    *term       ( void );
-char    *expression ( void );
+#include <stdio.h>
+#include <error.h>
 
 extern char *newname( void       );
 extern void freename( char *name );
 
 statements()
 {
-    /*  statements -> expression SEMI  |  expression SEMI statements  */
+    /*  statements -> expression1 SEMI  |  expression1 SEMI statements  */
 
     char *tempvar;
 
     while( !match(EOI) )
     {
-        tempvar = expression();
+        tempvar = expression1();
 
         if( match( SEMI ) )
             advance();
@@ -25,6 +24,39 @@ statements()
 
         freename( tempvar );
     }
+}
+
+char *expression1()
+{
+    /*expression1 -> expression | expression<expression |expression=expression |expression>expression | */
+    char * tempvar=expression();
+    if(match(GT))
+    {
+        advance();
+        char *tempvar2=expression();
+        printf("    %s > %s\n",tempvar,tempvar2);
+        freename(tempvar2);
+        //freename(tempvar1);
+
+    }
+    else if(match(LT))
+    {
+        advance();
+        char *tempvar2=expression();
+        printf("    %s < %s\n",tempvar,tempvar2);
+        freename(tempvar2);
+        //freename(tempvar1);
+    }
+    else if(match(EQUAL))
+    {
+        advance();
+        char *tempvar2=expression();
+        printf("    %s == %s\n",tempvar,tempvar2);
+        freename(tempvar2);
+        //freename(tempvar1);
+    }
+    return tempvar;
+
 }
 
 char    *expression()
@@ -36,11 +68,13 @@ char    *expression()
     char  *tempvar, *tempvar2;
 
     tempvar = term();
-    while( match( PLUS ) )
+    while( match( PLUS ) || match(MINUS) )
     {
+        int r=(match(PLUS))?1:0;
         advance();
         tempvar2 = term();
-        printf("    %s += %s\n", tempvar, tempvar2 );
+        if(r)printf("    %s += %s\n", tempvar, tempvar2 );
+        else printf("    %s -= %s\n", tempvar, tempvar2 );
         freename( tempvar2 );
     }
 
@@ -52,11 +86,13 @@ char    *term()
     char  *tempvar, *tempvar2 ;
 
     tempvar = factor();
-    while( match( TIMES ) )
+    while( match( TIMES ) || match(DIV))
     {
+        int r=(match(TIMES))?1:0;
         advance();
         tempvar2 = factor();
-        printf("    %s *= %s\n", tempvar, tempvar2 );
+        if(r)printf("    %s *= %s\n", tempvar, tempvar2 );
+        else printf("    %s /= %s\n", tempvar, tempvar2 );
         freename( tempvar2 );
     }
 
@@ -79,7 +115,9 @@ char    *factor()
 	 */
 
         printf("    %s = %0.*s\n", tempvar = newname(), yyleng, yytext );
+        // printf("rohan\n");
         advance();
+        // printf("roopansh\n");
     }
     else if( match(LP) )
     {
