@@ -23,6 +23,6 @@ char    *s;
     if( Namep > Names )   
     *--Namep = s;   
     else   
-    fprintf(stderr, "%d: (Internal error) Name stack underflow\n",   
-                                yylineno );   
+    fprintf(stderr, "%s  %d: (Internal error) Name stack underflow\n",   
+                               s, yylineno );   
 }   

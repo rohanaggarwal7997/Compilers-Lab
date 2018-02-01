@@ -7,6 +7,103 @@
 extern char *newname( void       );
 extern void freename( char *name );
 
+statement()
+{
+    /*  statements -> expression1 SEMI  |  expression1 SEMI statements  */
+
+    char *tempvar = NULL;
+
+   
+
+        if(match(ID))
+        {
+            advance();
+            if( !legal_lookahead( COL, 0 ) )
+                goto legal_lookahead_SEMI;
+            if(match(COL))
+            { 
+                advance();
+                if( !legal_lookahead( EQUAL, 0 ) )
+                    goto legal_lookahead_SEMI;
+                if(match(EQUAL))
+                {
+                    advance();
+                    tempvar = expression1();
+                }
+                else
+                {
+                    fprintf( stderr, "%d: Inserting missing equal\n", yylineno );
+                }
+            }
+            else
+            {
+                fprintf( stderr, "%d: Inserting missing colon\n", yylineno );
+            }
+        }
+        else if(match(IF))
+            {
+                advance();
+                tempvar = expression1();
+                if( !legal_lookahead( THEN, 0 ) )
+                   goto legal_lookahead_SEMI;
+                if(match(THEN))
+                {
+                    advance();
+                   // freename(tempvar);
+                    statement();
+                }
+                else
+                    fprintf( stderr, "%d: Inserting missing then\n", yylineno );
+            }   
+        else if(match(WHILE))
+            {   
+                advance();
+                tempvar = expression1();
+                if( !legal_lookahead( DO, 0 ) )
+                    goto legal_lookahead_SEMI;
+                if(match(DO))
+                {
+
+                    advance();
+
+                   // freename(tempvar);
+                    statement();
+                }
+                else
+                    fprintf( stderr, "%d: Inserting missing do\n", yylineno );
+                
+            }
+        else if(match(BEGIN))
+        {
+                advance();
+                
+                while(!match(END) && !match(EOI))
+                {
+                    statement();
+                    
+                }
+                
+                if(match(END))
+                    advance();
+                else
+                    fprintf( stderr, "%d: Inserting missing end\n", yylineno );
+        }
+        else tempvar = expression1();
+
+         freename( tempvar);
+
+legal_lookahead_SEMI:
+        if( match( SEMI ) )
+            {advance();
+            
+                   
+                }
+        else
+            fprintf( stderr, "%d: Inserting missing semicolon\n", yylineno );
+        
+    
+}
+
 statements()
 {
     /*  statements -> expression1 SEMI  |  expression1 SEMI statements  */
@@ -14,15 +111,96 @@ statements()
     char *tempvar;
 
     while( !match(EOI) )
-    {
-        tempvar = expression1();
+    {   
 
+        if(match(ID))
+        {
+            advance();
+            if( !legal_lookahead( COL, 0 ) )
+                goto legal_lookahead_SEMI;
+            if(match(COL))
+            { 
+                advance();
+                if( !legal_lookahead( EQUAL, 0 ) )
+                    goto legal_lookahead_SEMI;
+                if(match(EQUAL))
+                {
+                    advance();
+                    tempvar = expression1();
+                }
+                else
+                {
+                    fprintf( stderr, "%d: Inserting missing equal\n", yylineno );
+                }
+            }
+            else
+            {
+                fprintf( stderr, "%d: Inserting missing colon\n", yylineno );
+            }
+        }
+        else if(match(IF))
+            {
+                advance();
+                tempvar = expression1();
+                if( !legal_lookahead( THEN, 0 ) )
+                   goto legal_lookahead_SEMI;
+                if(match(THEN))
+                {
+                    advance();
+                    freename(tempvar);
+                    statements();
+                }
+                else
+                    fprintf( stderr, "%d: Inserting missing then\n", yylineno );
+            }   
+        else if(match(WHILE))
+            {   
+                advance();
+                tempvar = expression1();
+                if( !legal_lookahead( DO, 0 ) )
+                    goto legal_lookahead_SEMI;
+                if(match(DO))
+                {
+
+                    advance();
+
+                    freename(tempvar);
+                    statements();
+                }
+                else
+                    fprintf( stderr, "%d: Inserting missing do\n", yylineno );
+                
+            }
+        else if(match(BEGIN))
+        {
+                advance();
+                
+                while(!match(END) && !match(EOI) )
+                {
+                    statement();
+                }
+                if(match(END)){
+                    advance();
+                }
+                else{
+                    fprintf( stderr, "%d: Inserting missing end\n", yylineno );
+                }
+                goto legal_lookahead_SEMI;
+
+                
+        }
+        else tempvar = expression1();
+
+        freename( tempvar );
+        
+legal_lookahead_SEMI:
         if( match( SEMI ) )
             advance();
         else
             fprintf( stderr, "%d: Inserting missing semicolon\n", yylineno );
 
-        freename( tempvar );
+
+
     }
 }
 
@@ -132,4 +310,64 @@ char    *factor()
 	fprintf( stderr, "%d: Number or identifier expected\n", yylineno );
 
     return tempvar;
+}
+
+#include <stdarg.h>
+
+#define MAXFIRST 16
+#define SYNCH    SEMI
+
+int legal_lookahead( int first_arg , ...)
+{
+    /* Simple error detection and recovery. Arguments are a 0-terminated list of
+     * those tokens that can legitimately come next in the input. If the list is
+     * empty, the end of file must come next. Print an error message if
+     * necessary. Error recovery is performed by discarding all input symbols
+     * until one that's in the input list is found
+     *
+     * Return true if there's no error or if we recovered from the error,
+     * false if we can't recover.
+     */
+
+    va_list     args;
+    int     tok;
+    int     lookaheads[MAXFIRST], *p = lookaheads, *current;
+    int     error_printed = 0;
+    int     rval          = 0;
+
+    va_start( args, first_arg );
+
+    if( !first_arg )
+    {
+        if( match(EOI) )
+            rval = 1;
+    }
+    else
+    {
+        *p++ = first_arg;
+        while( (tok = va_arg(args, int)) && p < &lookaheads[MAXFIRST] )
+            *p++ = tok;
+
+        while( !match( SYNCH ) )
+        {
+            for( current = lookaheads; current < p ; ++current )
+            if( match( *current ) )
+            {
+                rval = 1;
+                goto exit;
+            }
+
+            if( !error_printed )
+            {
+            fprintf( stderr, "Line %d: Syntax error\n", yylineno );
+            error_printed = 1;
+            }
+
+            advance();
+       }
+    }
+
+exit:
+    va_end( args );
+    return rval;
 }

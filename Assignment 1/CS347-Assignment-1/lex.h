@@ -10,6 +10,17 @@
 #define LT 9 
 #define GT 10
 #define EQUAL 11
+#define IF         12   /* if               */
+#define THEN       13   /* then             */
+#define WHILE      14   /* WHILE            */
+#define DO         15   /* do               */
+#define BEGIN      16   /* begin            */
+#define END        17   /* end              */
+#define ID         18   /* identifier       */ 
+#define COL         19   /* : colon       */ 
+// #define TEMPID         20   /* : colon       */
+// #define LABELID         21   /* : colon       */ 
+
 
 extern char *yytext;		/* in lex.c			*/
 extern int yyleng;

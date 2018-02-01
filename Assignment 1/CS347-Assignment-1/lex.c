@@ -56,6 +56,8 @@ int lex(void){
             return LT;
            case '>':
             return GT;
+            case ':':
+            return COL;
            case '=':
             return EQUAL; 
            case '\n':
@@ -69,6 +71,33 @@ int lex(void){
                while(isalnum(*current))
                   ++current;
                yyleng = current - yytext;
+               char subbuff[yyleng+1];
+               memcpy( subbuff, yytext, yyleng );
+               subbuff[yyleng] = '\0';
+               if(strcmp(subbuff, "if") == 0)
+               {
+                  return IF;
+               }
+               else if(strcmp(subbuff, "then") == 0)
+               {
+                  return THEN;
+               }
+               else if(strcmp(subbuff, "while") == 0)
+               {
+                  return WHILE;
+               }
+               else if(strcmp(subbuff, "do") == 0)
+               {
+                  return DO;
+               }
+               else if(strcmp(subbuff, "begin") == 0)
+               {
+                  return BEGIN;
+               }
+               else if(strcmp(subbuff, "end") == 0)
+               {
+                  return END;
+               }
                return NUM_OR_ID;
             }
             break;
@@ -86,6 +115,23 @@ int match(int token){
 
    if(Lookahead == -1)
       Lookahead = lex();
+
+     if(token == ID && Lookahead == NUM_OR_ID)
+    {
+       int i;
+       char *current = yytext;
+       int r=1;
+       for(i=0;i<yyleng;i++)
+       {
+           if(isdigit(*current))
+                {r=0;break;}
+            current++;
+       }
+       if((r==1)&&(*(current)==':'))return 1;
+       return 0;
+       
+    }
+
 
    return token == Lookahead;
 }
