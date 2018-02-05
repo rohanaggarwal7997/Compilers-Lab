@@ -121,6 +121,8 @@ int match(int token){
        int i;
        char *current = yytext;
        int r=1;
+
+       //printf("%s\n %c\n",current,*(current+yyleng) );
        for(i=0;i<yyleng;i++)
        {
            if(isdigit(*current))

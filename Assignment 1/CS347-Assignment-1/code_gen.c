@@ -7,12 +7,16 @@
 extern char *newname( void       );
 extern void freename( char *name );
 
+statements()
+{
+    while(!match(EOI))
+        statement();
+}
 statement()
 {
     /*  statements -> expression1 SEMI  |  expression1 SEMI statements  */
 
-    char *tempvar = NULL;
-
+    char *tempvar;
    
 
         if(match(ID))
@@ -43,14 +47,23 @@ statement()
         else if(match(IF))
             {
                 advance();
+                printf("if (");
                 tempvar = expression1();
+                printf(")\n");
                 if( !legal_lookahead( THEN, 0 ) )
+                    {
+                    freename(tempvar);
                    goto legal_lookahead_SEMI;
+                    }
                 if(match(THEN))
                 {
+                    printf("then {\n");
                     advance();
-                   // freename(tempvar);
+                    freename(tempvar);
                     statement();
+                    printf("}\n");
+                    //freename(tempvar);
+                    return;
                 }
                 else
                     fprintf( stderr, "%d: Inserting missing then\n", yylineno );
@@ -58,16 +71,24 @@ statement()
         else if(match(WHILE))
             {   
                 advance();
+                printf("while (");
                 tempvar = expression1();
+                printf(")\n");
                 if( !legal_lookahead( DO, 0 ) )
+                {
+                    freename(tempvar);
                     goto legal_lookahead_SEMI;
+                }
                 if(match(DO))
                 {
-
+                    printf("do {\n");
                     advance();
 
-                   // freename(tempvar);
+                    freename(tempvar);
                     statement();
+                    printf("}\n");
+                    // freename(tempvar);
+                    return;
                 }
                 else
                     fprintf( stderr, "%d: Inserting missing do\n", yylineno );
@@ -75,119 +96,18 @@ statement()
             }
         else if(match(BEGIN))
         {
+                printf("BEGIN{\n");
                 advance();
-                
-                while(!match(END) && !match(EOI))
+                if(match(END)){printf("END\n");advance();return;}
+                stmt_list();
+                if(!legal_lookahead(END,0))
                 {
-                    statement();
-                    
-                }
-                
-                if(match(END))
-                    advance();
-                else
-                    fprintf( stderr, "%d: Inserting missing end\n", yylineno );
-        }
-        else tempvar = expression1();
-
-         freename( tempvar);
-
-legal_lookahead_SEMI:
-        if( match( SEMI ) )
-            {advance();
-            
-                   
-                }
-        else
-            fprintf( stderr, "%d: Inserting missing semicolon\n", yylineno );
-        
-    
-}
-
-statements()
-{
-    /*  statements -> expression1 SEMI  |  expression1 SEMI statements  */
-
-    char *tempvar;
-
-    while( !match(EOI) )
-    {   
-
-        if(match(ID))
-        {
-            advance();
-            if( !legal_lookahead( COL, 0 ) )
-                goto legal_lookahead_SEMI;
-            if(match(COL))
-            { 
-                advance();
-                if( !legal_lookahead( EQUAL, 0 ) )
+                    fprintf( stderr, "%d: Inserting missing END\n", yylineno );
                     goto legal_lookahead_SEMI;
-                if(match(EQUAL))
-                {
-                    advance();
-                    tempvar = expression1();
                 }
-                else
-                {
-                    fprintf( stderr, "%d: Inserting missing equal\n", yylineno );
-                }
-            }
-            else
-            {
-                fprintf( stderr, "%d: Inserting missing colon\n", yylineno );
-            }
-        }
-        else if(match(IF))
-            {
+                printf("END\n");
                 advance();
-                tempvar = expression1();
-                if( !legal_lookahead( THEN, 0 ) )
-                   goto legal_lookahead_SEMI;
-                if(match(THEN))
-                {
-                    advance();
-                    freename(tempvar);
-                    statements();
-                }
-                else
-                    fprintf( stderr, "%d: Inserting missing then\n", yylineno );
-            }   
-        else if(match(WHILE))
-            {   
-                advance();
-                tempvar = expression1();
-                if( !legal_lookahead( DO, 0 ) )
-                    goto legal_lookahead_SEMI;
-                if(match(DO))
-                {
-
-                    advance();
-
-                    freename(tempvar);
-                    statements();
-                }
-                else
-                    fprintf( stderr, "%d: Inserting missing do\n", yylineno );
-                
-            }
-        else if(match(BEGIN))
-        {
-                advance();
-                
-                while(!match(END) && !match(EOI) )
-                {
-                    statement();
-                }
-                if(match(END)){
-                    advance();
-                }
-                else{
-                    fprintf( stderr, "%d: Inserting missing end\n", yylineno );
-                }
-                goto legal_lookahead_SEMI;
-
-                
+                return;
         }
         else tempvar = expression1();
 
@@ -201,7 +121,14 @@ legal_lookahead_SEMI:
 
 
 
-    }
+}
+
+
+stmt_list()
+{    
+    while(!match(END)&&!match(EOI))
+        statement();
+    if(match(EOI))fprintf( stderr, "%d: End of file reached no END found\n", yylineno );
 }
 
 char *expression1()
