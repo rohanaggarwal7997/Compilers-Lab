@@ -59,7 +59,7 @@ int lex(void){
             case ':':
             return COL;
            case '=':
-            return EQUAL; 
+            return EQUAL;
            case '\n':
            case '\t':
            case ' ' :
@@ -123,15 +123,19 @@ int match(int token){
        int r=1;
 
        //printf("%s\n %c\n",current,*(current+yyleng) );
+       /*
        for(i=0;i<yyleng;i++)
        {
            if(isdigit(*current))
                 {r=0;break;}
             current++;
-       }
-       if((r==1)&&(*(current)==':'))return 1;
+       }*/
+       //if((r==1)&&(*(current)==':'))return 1;
+       for(i=0;i<yyleng;i++)current++;
+        while(isspace(*current))current++;
+       if((*current)==':')return 1;
        return 0;
-       
+
     }
 
 
