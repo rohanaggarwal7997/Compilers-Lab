@@ -61,7 +61,7 @@ statement()
 				{
 					advance();
 					tempvar = expression1();
-					fprintf(interFile,"_%s <- %s\n",assignment,tempvar);
+					fprintf(interFile,"%s <- %s\n",assignment,tempvar);
 
 					if(strcmp(tempvar, "t0") == 0){
 						fprintf(assFile, "STA _%s\n", assignment);
@@ -82,7 +82,7 @@ statement()
 		else if(match(IF))
 			{
 				advance();
-
+				fprintf(interFile, "if (\n");
 				tempvar = expression1();
 				if( !legal_lookahead( THEN, 0 ) )
 				{
@@ -91,7 +91,7 @@ statement()
 				}
 				if(match(THEN))
 				{
-					fprintf(interFile, "if (%s)\n", tempvar);
+					fprintf(interFile, "%s)\n", tempvar);
 					int ifthenLabel = getIfThenLabel();
 					fprintf(assFile, "CMP %c 0\nJZ IFTHEN%d\n", REG[tempvar[1] -'0'], ifthenLabel);
 					fprintf(interFile, "%s\n", "then {");
@@ -110,7 +110,7 @@ statement()
 				advance();
 				int loopLabel1 = getLoopLabel();
 				fprintf(assFile, "LOOP%d:\n",loopLabel1);
-
+				fprintf(interFile, "while (\n");
 				tempvar = expression1();
 				if( !legal_lookahead( DO, 0 ) )
 				{
@@ -119,7 +119,7 @@ statement()
 				}
 				if(match(DO))
 				{
-					fprintf(interFile, "while (%s)\n", tempvar);
+					fprintf(interFile, "%s)\n", tempvar);
 					int loopLabel = getLoopLabel();
 					fprintf(assFile, "CMP %c 0\nJZ LOOP%d\n", REG[tempvar[1]-'0'], loopLabel);
 
@@ -150,13 +150,14 @@ statement()
 					goto legal_lookahead_SEMI;
 				}
 
-				fprintf(interFile, "%s}\n", "END");
+				fprintf(interFile, "} %s\n", "END");
 				advance();
 				return;
 		}
 		else tempvar = expression1();
 
-		freename( tempvar );
+		if(tempvar!=NULL)freename( tempvar );
+		else exit(1);
 
 legal_lookahead_SEMI:
 		if( match( SEMI ) )
@@ -324,7 +325,7 @@ char    *term()
 
 char    *factor()
 {
-	char *tempvar;
+	char *tempvar=NULL;
 
 	if( match(NUM_OR_ID) )
 	{
