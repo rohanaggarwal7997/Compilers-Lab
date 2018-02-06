@@ -11,8 +11,13 @@ extern void freename( char *name );
 FILE *assFile, *interFile;
 char *REG[8] = {'A','B','C','D','E','F','G','H'};
 
+
+
 statements()
 {
+		/*statements -> statements statement | statement*/
+
+
 	assFile = fopen("Assembly.asm", "w");
 	interFile = fopen("Intermediate.txt", "w");
 
@@ -28,7 +33,11 @@ statements()
 
 statement()
 {
-	/*  statements -> expression1 SEMI  |  expression1 SEMI statements  */
+	/*  statement -> ID:=expression1; | IF expression1 then statement |
+		while expression1 do statement | expression1; |
+		begin  stmt_list  end |
+		begin end
+	  */
 
 	char *tempvar;
 
@@ -158,6 +167,9 @@ legal_lookahead_SEMI:
 
 stmt_list()
 {
+
+	/*stmt_list -> statement stmt_list*/
+
 	while(!match(END)&&!match(EOI))
 		statement();
 	if(match(EOI))fprintf( stderr, "%d: End of file reached no END found\n", yylineno );
