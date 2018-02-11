@@ -87,6 +87,7 @@ statement()
 				if( !legal_lookahead( THEN, 0 ) )
 				{
 					freename(tempvar);
+					fprintf( stderr, "%d: Inserting missing then\n", yylineno );
 					goto legal_lookahead_SEMI;
 				}
 				if(match(THEN))

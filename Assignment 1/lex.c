@@ -1,12 +1,14 @@
 #include "lex.h"
 #include <stdio.h>
 #include <ctype.h>
-
+int previous=-1;
 
 char* yytext = ""; /* Lexeme (not '\0'
                       terminated)              */
 int yyleng   = 0;  /* Lexeme length.           */
 int yylineno = 0;  /* Input line number        */
+
+//FILE * fp_lex = fopen("temp.txt","w");
 
 int lex(void){
 
@@ -133,13 +135,48 @@ int match(int token){
        //if((r==1)&&(*(current)==':'))return 1;
        for(i=0;i<yyleng;i++)current++;
         while(isspace(*current))current++;
-       if((*current)==':')return 1;
+       if((*current)==':'){
+        if(previous!=token){fprintf(stderr,"ID\n");previous=token;}
+        return 1;
+      }
        return 0;
 
     }
 
 
-   return token == Lookahead;
+   if( token == Lookahead)
+   {
+      if(previous!=token)
+       {
+       previous=token;
+      switch(token)
+      {
+      case(0):fprintf(stderr,"END OF INPUT\n");break;
+      case(1):fprintf(stderr,"SEMI\n");break;
+      case(2):fprintf(stderr,"PLUS\n");break;
+      case(3):fprintf(stderr,"TIMES\n");break;
+      case(4):fprintf(stderr,"LP\n");break;
+      case(5):fprintf(stderr,"RP\n");break;
+      case(6):fprintf(stderr,"NUM_OR_ID\n");break;
+      case(7):fprintf(stderr,"MINUS\n");break;
+      case(8):fprintf(stderr,"DIV\n");break;
+      case(9):fprintf(stderr,"LT\n");break;
+      case(10):fprintf(stderr,"GT\n");break;
+      case(11):fprintf(stderr,"EQUAL\n");break;
+      case(12):fprintf(stderr,"IF\n");break;
+      case(13):fprintf(stderr,"THEN\n");break;
+      case(14):fprintf(stderr,"WHILE\n");break;
+      case(15):fprintf(stderr,"DO\n");break;
+      case(16):fprintf(stderr,"BEGIN\n");break;
+      case(17):fprintf(stderr,"END\n");break;
+      case(18):fprintf(stderr,"ID\n");break;
+      case(19):fprintf(stderr,"COL\n");break;
+
+      }
+    }
+      return 1;
+   }
+   else return 0;
 }
 
 void advance(void){
