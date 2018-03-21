@@ -19,5 +19,5 @@ int main(){
 	link_2 = Link(start_point = "cluster2", end_point= "ram1", 40, 50);
 	cluster_3 = Cluster(processors=[cluster_1, cluster_2],topology = "star", 100, 80, name = "cluster3");
 	cluster_3.submit_jobs(job_array1);
-	a.run(cluster3);
+	run(cluster3);
 }
